@@ -1,0 +1,22 @@
+Game:
+
+<Game>:
+    maze: maze
+    canvas:
+        Color:
+            rgb: 0, 1, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    Maze:
+        id: maze
+        size_hint: None, None
+        size: root.MAZE_WIDTH, root.MAZE_HEIGHT
+        pos: root.width * 0.5 - self.width*0.5, root.height * 0.5 - self.height*0.5
+        num_tiles: root.NUM_TILES
+        canvas:
+            Color:
+                rgb: 0, 0, 1
+            Rectangle:
+                size: self.size
+                # pos: self.pos
