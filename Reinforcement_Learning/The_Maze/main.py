@@ -8,6 +8,7 @@ from kivy.vector import Vector
 from kivy.core.window import Window
 from kivy.clock import Clock
 
+
 class Game(Widget):
     ## creating game variables
     MAZE_WIDTH = NumericProperty(700)
@@ -23,17 +24,16 @@ class Game(Widget):
 
     ## function to initialize keyboard
     def init_keyboard(self):
-        self.keyboard = Window.request_keyboard(self.keyboard_closed, self, 'text')
-        self.keyboard.bind(on_key_down = self.keyboard_down)
-    
+        self.keyboard = Window.request_keyboard(self.keyboard_closed, self, "text")
+        self.keyboard.bind(on_key_down=self.keyboard_down)
+
     ## keyboard event functions
     def keyboard_closed(self):
-        self.keyboard.unbind(on_key_down = self.keyboard_down)
+        self.keyboard.unbind(on_key_down=self.keyboard_down)
         self.keyboard = None
 
     def keyboard_down(self, keyboard, keycode, text, modifiers):
         self.maze.move_agent(keycode)
-
 
 
 class Maze(RelativeLayout):
@@ -41,30 +41,33 @@ class Maze(RelativeLayout):
     tile_width = 0
     tile_height = 0
     tiles = []
+
     def __init__(self, **kwargs):
         super(Maze, self).__init__(**kwargs)
         Clock.schedule_once(self.init_maze, 0.1)
 
     def init_tiles(self):
-        self.tile_width = self.width/self.num_tiles[0]
-        self.tile_height = self.height/self.num_tiles[1]
-        
+        self.tile_width = self.width / self.num_tiles[0]
+        self.tile_height = self.height / self.num_tiles[1]
+
         with self.canvas.before:
             for i in range(self.num_tiles[0]):
                 for j in range(self.num_tiles[1]):
-                    xpos = i*self.tile_width
-                    ypos = j*self.tile_height
-                    Color(rgb=(0,0,0))
-                    self.tiles.append(Rectangle(
-                        size = (self.tile_width, self.tile_height),
-                        pos = (xpos, ypos)
-                    ))
-                    Color(rgb=(1,1,1))
+                    xpos = i * self.tile_width
+                    ypos = j * self.tile_height
+                    Color(rgb=(0, 0, 0))
+                    self.tiles.append(
+                        Rectangle(
+                            size=(self.tile_width, self.tile_height), pos=(xpos, ypos)
+                        )
+                    )
+                    Color(rgb=(1, 1, 1))
                     Line(rectangle=(xpos, ypos, self.tile_width, self.tile_height))
 
     def init_agent(self):
         self.agent.width = self.tile_width
         self.agent.height = self.tile_height
+        self.agent.pos_idxs = [0, 0]
 
     def init_maze(self, dt):
         self.init_tiles()
@@ -72,38 +75,58 @@ class Maze(RelativeLayout):
 
     ## functiont o move agent
     def move_agent(self, keycode):
-        if(not self.is_at_edge(self.agent, keycode[1])):
+        if not self.is_at_edge(self.agent, keycode[1]):
             self.agent.move(keycode, (self.tile_width, self.tile_height))
 
     ## function to check whether object is at edge of maze
     def is_at_edge(self, obj, direction):
-        if(obj.pos[0] >= (self.width - self.tile_width)) and direction == "right":
+        if (obj.pos_idxs[0] >= self.num_tiles[0] - 1) and direction == "right":
             return True
-        elif(obj.pos[0] <= 0) and direction == "left":
+        elif (obj.pos_idxs[0] <= 0) and direction == "left":
             return True
-        if(obj.pos[1] >= (self.height - self.tile_height)) and direction == "up":
+        if (obj.pos_idxs[1] >= self.num_tiles[1] - 1) and direction == "up":
             return True
-        elif(obj.pos[1] <= 0) and direction == "down":
+        elif (obj.pos_idxs[1] <= 0) and direction == "down":
             return True
-        
+
         return False
-        
+    
+        ## some old logic that might be useful later
+        # if(obj.pos[0] >= (self.width - self.tile_width)) and direction == "right":
+        #     return True
+        # elif(obj.pos[0] <= 0) and direction == "left":
+        #     return True
+        # if(obj.pos[1] >= (self.height - self.tile_height)) and direction == "up":
+        #     return True
+        # elif(obj.pos[1] <= 0) and direction == "down":
+        #     return True
+
 
 class Agent(Widget):
     def move(self, keycode, dist):
-        vec = None
-        if(keycode[1] == "right"):
-            self.pos = Vector(dist[0], 0) + self.pos
-        if(keycode[1] == "left"):
-            self.pos = Vector(-dist[0], 0) + self.pos
-        if(keycode[1] == "up"):
-            self.pos = Vector(0, dist[1]) + self.pos
-        if(keycode[1] == "down"):
-            self.pos = Vector(0,-dist[1]) + self.pos
-    
+        # print(self.pos_idxs)
+        # if(keycode[1] == "right"):
+        #     self.pos = Vector(dist[0], 0) + self.pos
+        # if(keycode[1] == "left"):
+        #     self.pos = Vector(-dist[0], 0) + self.pos
+        # if(keycode[1] == "up"):
+        #     self.pos = Vector(0, dist[1]) + self.pos
+        # if(keycode[1] == "down"):
+        #     self.pos = Vector(0,-dist[1]) + self.pos
+
+        if keycode[1] == "right":
+            self.pos_idxs[0] = self.pos_idxs[0] + 1
+        if keycode[1] == "left":
+            self.pos_idxs[0] = self.pos_idxs[0] - 1
+        if keycode[1] == "up":
+            self.pos_idxs[1] = self.pos_idxs[1] + 1
+        if keycode[1] == "down":
+            self.pos_idxs[1] = self.pos_idxs[1] - 1
+        self.pos = (self.pos_idxs[0] * dist[0], self.pos_idxs[1] * dist[1])
 
 
 class WorldApp(App):
     pass
+
 
 WorldApp().run()
