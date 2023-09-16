@@ -198,6 +198,7 @@ class Agent(Widget):
             case "left":
                 return 3
             case _:
+                print(action)
                 return 4
             
 
