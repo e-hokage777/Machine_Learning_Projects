@@ -4,7 +4,7 @@ Game:
     size_hint: None, None
     canvas:
         Color:
-            rgb: 1, 0, 0
+            rgb: 0, 1, 1
         Rectangle:
             pos: self.pos
             size: self.size
@@ -12,12 +12,12 @@ Game:
 
 <Game>:
     maze: maze
-    canvas:
-        Color:
-            rgb: 0, 1, 1
-        Rectangle:
-            size: self.size
-            pos: self.pos
+    # canvas:
+    #     Color:
+    #         rgb: 0, 1, 1
+    #     Rectangle:
+    #         size: self.size
+    #         pos: self.pos
     Maze:
         id: maze
         agent: agent
@@ -25,12 +25,12 @@ Game:
         size: root.MAZE_WIDTH, root.MAZE_HEIGHT
         pos: root.width * 0.5 - self.width*0.5, root.height * 0.5 - self.height*0.5
         num_tiles: root.NUM_TILES
-        canvas:
-            Color:
-                rgba: 0, 0, 1, 0.3
-            Rectangle:
-                size: self.size
-                # pos: self.pos
+        num_pits: root.NUM_PITS
+        # canvas:
+        #     Color:
+        #         rgba: 0, 0, 1, 0.3
+        #     Rectangle:
+        #         size: self.size
         
         Agent:
             id: agent
