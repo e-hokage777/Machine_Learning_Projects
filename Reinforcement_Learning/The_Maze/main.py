@@ -11,6 +11,8 @@ from kivy.clock import Clock
 import random
 import numpy as np
 
+from ai import Brain
+
 
 class Game(Widget):
     ## creating game variables
@@ -26,6 +28,7 @@ class Game(Widget):
         super(Game, self).__init__(**kwargs)
         self.init_keyboard()
 
+
     ## function to initialize keyboard
     def init_keyboard(self):
         self.keyboard = Window.request_keyboard(self.keyboard_closed, self, "text")
@@ -37,13 +40,14 @@ class Game(Widget):
         self.keyboard = None
 
     def keyboard_down(self, keyboard, keycode, text, modifiers):
-        self.maze.move_agent(keycode)
+        self.maze.update_agent(keycode)
 
 
 class Maze(RelativeLayout):
     agent = ObjectProperty(None)
     tile_width = 0
     tile_height = 0
+    num_tiles = None ## this value is set in the kivy file
     tiles = []
     goal_idx = None
     enemies_idxs = []
@@ -104,6 +108,8 @@ class Maze(RelativeLayout):
         self.agent.width = self.tile_width
         self.agent.height = self.tile_height
         self.agent.pos_idxs = [0, 0]
+        self.agent.brain = Brain(self.num_tiles[0] * self.num_tiles[1],  4)
+        print(self.agent.brain.q_table.shape)
 
     def init_maze(self, dt):
         self.init_tiles()
@@ -114,9 +120,9 @@ class Maze(RelativeLayout):
         self.agent.reset()
 
     ## functiont to move agent
-    def move_agent(self, keycode):
+    def update_agent(self, keycode):
         if not self.is_at_edge(self.agent, keycode[1]):
-            self.agent.move(keycode, (self.tile_width, self.tile_height))
+            self.agent.update(keycode[1], (self.tile_width, self.tile_height), self.tile_reward_array)
 
         ## resetting player position when goal reached
         if (
@@ -150,31 +156,50 @@ class Maze(RelativeLayout):
 
 
 class Agent(Widget):
+    last_state = 0
     ## function to reset player to beginning of world
     def reset(self):
         self.pos = (0, 0)
         self.pos_idxs = [0,0]
 
-    def move(self, keycode, dist):
-        # print(self.pos_idxs)
-        # if(keycode[1] == "right"):
-        #     self.pos = Vector(dist[0], 0) + self.pos
-        # if(keycode[1] == "left"):
-        #     self.pos = Vector(-dist[0], 0) + self.pos
-        # if(keycode[1] == "up"):
-        #     self.pos = Vector(0, dist[1]) + self.pos
-        # if(keycode[1] == "down"):
-        #     self.pos = Vector(0,-dist[1]) + self.pos
-
-        if keycode[1] == "right":
+    def move(self, action, dist):
+        if action == "right":
             self.pos_idxs[0] = self.pos_idxs[0] + 1
-        if keycode[1] == "left":
+        if action == "left":
             self.pos_idxs[0] = self.pos_idxs[0] - 1
-        if keycode[1] == "up":
+        if action == "up":
             self.pos_idxs[1] = self.pos_idxs[1] + 1
-        if keycode[1] == "down":
+        if action == "down":
             self.pos_idxs[1] = self.pos_idxs[1] - 1
         self.pos = (self.pos_idxs[0] * dist[0], self.pos_idxs[1] * dist[1])
+
+    def update(self, action, dist, reward_array):
+        self.move(action, dist)
+        reward = reward_array[self.pos_idxs[0], self.pos_idxs[1]]
+        print(self.pos_idxs)
+        next_state = self.pos_to_state(self.pos_idxs)
+        action = self.action_to_ind(action)
+        self.brain.update(self.last_state, next_state, action, reward)
+        self.last_state = next_state
+
+    ## function to convert position to state
+    def pos_to_state(self, idxs):
+        return idxs[1] * self.parent.num_tiles[1] + idxs[0]
+    
+    ## function to convert action in words to index
+    def action_to_ind(self, action):
+        match action:
+            case "up":
+                return 0
+            case "right":
+                return 1
+            case "down":
+                return 2
+            case "left":
+                return 3
+            case _:
+                return 4
+            
 
 
 class WorldApp(App):
