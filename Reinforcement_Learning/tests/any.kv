@@ -1,0 +1,114 @@
+MainWidget:
+
+<MainWidget>
+    grid: grid
+    Grid:
+        id: grid
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+    Button:
+        text: "click"
+        on_press: root.pressed()
+        size: 50, 50
+        size_hint: None, None
+
+
+<Grid>
+    size_hint: 0.8, 0.8
+    canvas.before:
+        Color:
+            rgb: 0, 1, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+<Tile>:
+    canvas.before:
+        Color:
+            rgb: 0,0,0
+        Line:
+            rectangle: self.pos[0], self.pos[1], self.width, self.height
+    Label:
+        text: str(root.action_one)
+        pos_hint: {"center_y": 0.5, "x": 0}
+        size_hint: 0.25, 1
+        font_size: 10
+        color: "black"
+    Label:
+        text: str(root.action_two)
+        pos_hint: {"center_y": 0.5, "right": 1}
+        size_hint: 0.25, 1
+        font_size: 10
+        color: "black"
+    Label:
+        text: str(root.action_three)
+        pos_hint: {"y": 0, "x": 0}
+        size_hint: 1, 0.25
+        font_size: 10
+        color: "black"
+    Label:
+        text: str(root.action_four)
+        pos_hint: {"top": 1, "x": 0}
+        size_hint: 1, 0.25
+        font_size: 10
+        color: "black"
+
+# <MainWidget@FloatLayout>
+    # # size_hint: None, None
+    # size: 100, 100
+    # # canvas:
+    # #     Rectangle:
+    # #         size: self.size
+    # #         pos: self.pos
+    # Label:
+    #     text: "Left"
+    #     background_color: (0.3, 0.7, 0.3)
+    #     size_hint: 0.25, 1
+    #     pos_hint: {"center_y": 0.5, "x": 0}
+    #     canvas.before:
+    #         Color:
+    #             rgb: self.background_color
+
+    #         Rectangle:
+    #             size: self.size
+    #             pos: self.pos
+    #         PushMatrix
+    #         Rotate:
+    #             angle: 90
+    #             origin: self.center
+    #     canvas.after:
+    #         PopMatrix
+    # Label:
+    #     text: "Right"
+    #     background_color2: 0.3, 0.7, 0.1
+    #     size_hint: 0.25, 0.25
+    #     pos_hint: {"right": 1, "center_y": 0.5}
+    #     canvas.before:
+    #         Color:
+    #             rgb: self.background_color2
+    #         Rectangle:
+    #             size: self.size
+    #             pos: self.pos
+    # Label:
+    #     text: "Top"
+    #     background_color3: 0.3, 0.7, 0.1
+    #     size_hint: 0.25, 0.25
+    #     pos_hint: {"center_x": 0.5, "top": 1}
+    #     canvas.before:
+    #         Color:
+    #             rgb: self.background_color3
+    #         Rectangle:
+    #             size: self.size
+    #             pos: self.pos
+    # Label:
+    #     text: "Bottom"
+    #     background_color4: 0.3, 0.7, 0.1
+    #     size_hint: 1, 0.25
+    #     pos_hint: {"center_x": 0.5, "bottom": 1}
+    #     canvas.before:
+    #         Color:
+    #             rgb: self.background_color4
+    #         Rectangle:
+    #             size: self.size
+    #             pos: self.pos
+    # Label:
+    #     text: "Right"

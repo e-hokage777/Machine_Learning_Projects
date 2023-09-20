@@ -1,7 +1,9 @@
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.relativelayout import RelativeLayout
-from kivy.properties import NumericProperty, ObjectProperty, ReferenceListProperty
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.properties import NumericProperty, ObjectProperty, ReferenceListProperty, ListProperty
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
 from kivy.vector import Vector
@@ -52,6 +54,7 @@ class Maze(RelativeLayout):
     goal_idx = None
     enemies_idxs = []
     tile_reward_array = None
+    q_grid = None
 
     def __init__(self, **kwargs):
         super(Maze, self).__init__(**kwargs)
@@ -109,12 +112,16 @@ class Maze(RelativeLayout):
         self.agent.height = self.tile_height
         self.agent.pos_idxs = [0, 0]
         self.agent.brain = Brain(self.num_tiles[0] * self.num_tiles[1],  4)
-        print(self.agent.brain.q_table.shape)
+
+    def init_q_grid(self):
+        self.q_grid = QGrid(rows=self.num_tiles[0], cols=self.num_tiles[1], size=self.size)
+        self.add_widget(self.q_grid)
 
     def init_maze(self, dt):
         self.init_tiles()
         self.init_tile_reward_array()
         self.init_agent()
+        self.init_q_grid()
 
     def reset_game(self):
         self.agent.reset()
@@ -130,6 +137,13 @@ class Maze(RelativeLayout):
             and self.agent.pos_idxs[1] == self.goal_idx[1]
         ):
             self.reset_game()
+
+    ## function to update the q_grid
+    def update_q_grid(self, state):
+        self.q_grid.tiles[state].action_0 += 5
+        # self.q_grid.tiles[state].actions[1] = self.tile_reward_array[state, 1]
+        # self.q_grid.tiles[state].actions[2] = self.tile_reward_array[state, 2]
+        # self.q_grid.tiles[state].actions[3] = self.tile_reward_array[state, 3]
 
     ## function to check whether object is at edge of maze
     def is_at_edge(self, obj, direction):
@@ -154,6 +168,23 @@ class Maze(RelativeLayout):
         # elif(obj.pos[1] <= 0) and direction == "down":
         #     return True
 
+class QTile(FloatLayout):
+    action_0 = NumericProperty(0)
+    action_1 = NumericProperty(1)
+    action_2 = NumericProperty(2)
+    action_3 = NumericProperty(3)
+    actions = ListProperty([action_0, action_1, action_2, action_3])
+    def __init__(self, **kwargs):
+        super(QTile, self).__init__(**kwargs)
+
+class QGrid(GridLayout):
+    tiles = []
+    def __init__(self, **kwargs):
+        super(QGrid, self).__init__(**kwargs)
+        for i in range(self.rows * self.cols):
+            tile = QTile()
+            self.tiles.append(tile)
+            self.add_widget(tile)
 
 class Agent(Widget):
     last_state = 0
@@ -180,7 +211,11 @@ class Agent(Widget):
         next_state = self.pos_to_state(self.pos_idxs)
         action = self.action_to_ind(action)
         self.brain.update(self.last_state, next_state, action, reward)
+        ## updating the qgrid
+        self.parent.update_q_grid(self.last_state)
+        print(self.parent.q_grid)
         self.last_state = next_state
+
 
     ## function to convert position to state
     def pos_to_state(self, idxs):
