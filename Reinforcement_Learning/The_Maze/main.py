@@ -1,7 +1,14 @@
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.relativelayout import RelativeLayout
-from kivy.properties import NumericProperty, ObjectProperty, ReferenceListProperty
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.properties import (
+    NumericProperty,
+    ObjectProperty,
+    ReferenceListProperty,
+    ListProperty,
+)
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
 from kivy.vector import Vector
@@ -28,7 +35,6 @@ class Game(Widget):
         super(Game, self).__init__(**kwargs)
         self.init_keyboard()
 
-
     ## function to initialize keyboard
     def init_keyboard(self):
         self.keyboard = Window.request_keyboard(self.keyboard_closed, self, "text")
@@ -47,11 +53,12 @@ class Maze(RelativeLayout):
     agent = ObjectProperty(None)
     tile_width = 0
     tile_height = 0
-    num_tiles = None ## this value is set in the kivy file
+    num_tiles = None  ## this value is set in the kivy file
     tiles = []
     goal_idx = None
     enemies_idxs = []
     tile_reward_array = None
+    q_grid = None
 
     def __init__(self, **kwargs):
         super(Maze, self).__init__(**kwargs)
@@ -63,8 +70,12 @@ class Maze(RelativeLayout):
         self.goal_idx = (self.num_tiles[0] - 1, self.num_tiles[1] - 1)
 
         ## setting up pit locations
-        enemies_xs = random.sample([r for r in range(self.num_tiles[0])], self.num_enemies)
-        enemies_ys = random.sample([r for r in range(self.num_tiles[1])], self.num_enemies)
+        enemies_xs = random.sample(
+            [r for r in range(self.num_tiles[0])], self.num_enemies
+        )
+        enemies_ys = random.sample(
+            [r for r in range(self.num_tiles[1])], self.num_enemies
+        )
         self.enemies_idxs = list(zip(enemies_xs, enemies_ys))
 
         with self.canvas.before:
@@ -82,16 +93,18 @@ class Maze(RelativeLayout):
                     #     Color(rgba=(1, 1, 1))
                     self.tiles.append(
                         Rectangle(
-                            size=(self.tile_width, self.tile_height), pos=(xpos, ypos),
-                            source=tile_img
+                            size=(self.tile_width, self.tile_height),
+                            pos=(xpos, ypos),
+                            source=tile_img,
                         )
                     )
 
                     if (i, j) in self.enemies_idxs:
                         Color("transparent")
                         Rectangle(
-                            size=(self.tile_width, self.tile_height), pos=(xpos, ypos),
-                            source = enemy_img
+                            size=(self.tile_width, self.tile_height),
+                            pos=(xpos, ypos),
+                            source=enemy_img,
                         )
 
                     Color(rgb=(1, 1, 1))
@@ -108,13 +121,30 @@ class Maze(RelativeLayout):
         self.agent.width = self.tile_width
         self.agent.height = self.tile_height
         self.agent.pos_idxs = [0, 0]
-        self.agent.brain = Brain(self.num_tiles[0] * self.num_tiles[1],  4)
-        print(self.agent.brain.q_table.shape)
+        self.agent.brain = Brain(self.num_tiles[0] * self.num_tiles[1], 4)
+
+    def init_q_grid(self):
+        # self.q_grid = QGrid(
+        #     rows=self.num_tiles[0],
+        #     cols=self.num_tiles[1],
+        #     size=self.size,
+        #     tile_width=self.tile_width,
+        #     tile_height=self.tile_height
+        # )
+        self.q_grid = QGrid(
+            num_tiles_x = self.num_tiles[0],
+            num_tiles_y = self.num_tiles[1],
+            size=self.size,
+            tile_width=self.tile_width,
+            tile_height=self.tile_height
+        )
+        self.add_widget(self.q_grid)
 
     def init_maze(self, dt):
         self.init_tiles()
         self.init_tile_reward_array()
         self.init_agent()
+        self.init_q_grid()
 
     def reset_game(self):
         self.agent.reset()
@@ -122,7 +152,9 @@ class Maze(RelativeLayout):
     ## functiont to move agent
     def update_agent(self, keycode):
         if not self.is_at_edge(self.agent, keycode[1]):
-            self.agent.update(keycode[1], (self.tile_width, self.tile_height), self.tile_reward_array)
+            self.agent.update(
+                keycode[1], (self.tile_width, self.tile_height), self.tile_reward_array
+            )
 
         ## resetting player position when goal reached
         if (
@@ -130,6 +162,13 @@ class Maze(RelativeLayout):
             and self.agent.pos_idxs[1] == self.goal_idx[1]
         ):
             self.reset_game()
+
+    ## function to update the q_grid
+    def update_q_grid(self, state):
+        self.q_grid.tiles[state].action_0 += 5
+        # self.q_grid.tiles[state].actions[1] = self.tile_reward_array[state, 1]
+        # self.q_grid.tiles[state].actions[2] = self.tile_reward_array[state, 2]
+        # self.q_grid.tiles[state].actions[3] = self.tile_reward_array[state, 3]
 
     ## function to check whether object is at edge of maze
     def is_at_edge(self, obj, direction):
@@ -155,12 +194,46 @@ class Maze(RelativeLayout):
         #     return True
 
 
+class QTile(FloatLayout):
+    action_0 = NumericProperty(0)
+    action_1 = NumericProperty(1)
+    action_2 = NumericProperty(2)
+    action_3 = NumericProperty(3)
+    actions = ListProperty([action_0, action_1, action_2, action_3])
+
+    def __init__(self, **kwargs):
+        super(QTile, self).__init__(**kwargs)
+
+
+class QGrid(FloatLayout):
+    tile_width = NumericProperty(0)
+    tile_height = NumericProperty(0)
+    num_tiles_x = NumericProperty(0)
+    num_tiles_y = NumericProperty(0)
+    tiles = []
+    def __init__(self, **kwargs):
+        super(QGrid, self).__init__(**kwargs)
+        # for i in range(self.rows * self.cols):
+        #     tile = QTile()
+        #     self.tiles.append(tile)
+        #     self.add_widget(tile)
+        for i in range(self.num_tiles_x):
+            for j in range(self.num_tiles_y):
+                xpos = i * self.tile_width
+                ypos = j * self.tile_height 
+                tile = QTile(width =self.tile_width, height=self.tile_height)
+                self.tiles.append(tile)
+                self.add_widget(tile)
+
+
+
 class Agent(Widget):
     last_state = 0
+
     ## function to reset player to beginning of world
     def reset(self):
         self.pos = (0, 0)
-        self.pos_idxs = [0,0]
+        self.pos_idxs = [0, 0]
 
     def move(self, action, dist):
         if action == "right":
@@ -180,12 +253,15 @@ class Agent(Widget):
         next_state = self.pos_to_state(self.pos_idxs)
         action = self.action_to_ind(action)
         self.brain.update(self.last_state, next_state, action, reward)
+        ## updating the qgrid
+        self.parent.update_q_grid(self.last_state)
+        print(self.parent.q_grid)
         self.last_state = next_state
 
     ## function to convert position to state
     def pos_to_state(self, idxs):
         return idxs[1] * self.parent.num_tiles[1] + idxs[0]
-    
+
     ## function to convert action in words to index
     def action_to_ind(self, action):
         match action:
@@ -200,7 +276,6 @@ class Agent(Widget):
             case _:
                 print(action)
                 return 4
-            
 
 
 class WorldApp(App):
