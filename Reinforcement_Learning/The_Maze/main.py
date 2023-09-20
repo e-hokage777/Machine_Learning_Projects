@@ -8,6 +8,7 @@ from kivy.properties import (
     ObjectProperty,
     ReferenceListProperty,
     ListProperty,
+    StringProperty
 )
 from kivy.graphics.context_instructions import Color
 from kivy.graphics.vertex_instructions import Rectangle, Line
@@ -124,13 +125,6 @@ class Maze(RelativeLayout):
         self.agent.brain = Brain(self.num_tiles[0] * self.num_tiles[1], 4)
 
     def init_q_grid(self):
-        # self.q_grid = QGrid(
-        #     rows=self.num_tiles[0],
-        #     cols=self.num_tiles[1],
-        #     size=self.size,
-        #     tile_width=self.tile_width,
-        #     tile_height=self.tile_height
-        # )
         self.q_grid = QGrid(
             num_tiles_x = self.num_tiles[0],
             num_tiles_y = self.num_tiles[1],
@@ -165,10 +159,14 @@ class Maze(RelativeLayout):
 
     ## function to update the q_grid
     def update_q_grid(self, state):
-        self.q_grid.tiles[state].action_0 += 5
-        # self.q_grid.tiles[state].actions[1] = self.tile_reward_array[state, 1]
-        # self.q_grid.tiles[state].actions[2] = self.tile_reward_array[state, 2]
-        # self.q_grid.tiles[state].actions[3] = self.tile_reward_array[state, 3]
+        q_table = self.agent.brain.q_table
+        print(q_table)
+        self.q_grid.tiles[state].action_0 = f"{(q_table[state, 0]):{.2}}"
+        self.q_grid.tiles[state].action_1 = f"{(q_table[state, 1]):{.2}}"
+        self.q_grid.tiles[state].action_2 = f"{(q_table[state, 2]):{.2}}"
+        self.q_grid.tiles[state].action_3 = f"{(q_table[state, 3]):{.2}}"
+
+    ## function to convert from state in index
 
     ## function to check whether object is at edge of maze
     def is_at_edge(self, obj, direction):
@@ -195,11 +193,11 @@ class Maze(RelativeLayout):
 
 
 class QTile(FloatLayout):
-    action_0 = NumericProperty(0)
-    action_1 = NumericProperty(1)
-    action_2 = NumericProperty(2)
-    action_3 = NumericProperty(3)
-    actions = ListProperty([action_0, action_1, action_2, action_3])
+    action_0 = StringProperty('0')
+    action_1 = StringProperty('0')
+    action_2 = StringProperty('0')
+    action_3 = StringProperty('0')
+    # actions = ListProperty([action_0, action_1, action_2, action_3])
 
     def __init__(self, **kwargs):
         super(QTile, self).__init__(**kwargs)
@@ -217,11 +215,11 @@ class QGrid(FloatLayout):
         #     tile = QTile()
         #     self.tiles.append(tile)
         #     self.add_widget(tile)
-        for i in range(self.num_tiles_x):
-            for j in range(self.num_tiles_y):
-                xpos = i * self.tile_width
-                ypos = j * self.tile_height 
-                tile = QTile(width =self.tile_width, height=self.tile_height)
+        for i in range(self.num_tiles_y):
+            for j in range(self.num_tiles_x):
+                ypos = i * self.tile_height
+                xpos = j * self.tile_width 
+                tile = QTile(width =self.tile_width, height=self.tile_height, pos=(xpos, ypos))
                 self.tiles.append(tile)
                 self.add_widget(tile)
 
@@ -255,7 +253,6 @@ class Agent(Widget):
         self.brain.update(self.last_state, next_state, action, reward)
         ## updating the qgrid
         self.parent.update_q_grid(self.last_state)
-        print(self.parent.q_grid)
         self.last_state = next_state
 
     ## function to convert position to state

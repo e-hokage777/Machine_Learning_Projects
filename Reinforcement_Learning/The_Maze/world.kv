@@ -31,31 +31,36 @@ Game:
         
 
 <QTile>:
+    size_hint: None, None
     canvas.before:
         Color:
             rgb: 0,0,0
         Line:
             rectangle: self.pos[0], self.pos[1], self.width, self.height
+        # Rectangle:
+        #     size: self.size
+        #     pos: self.pos
+
     Label:
-        text: str(root.action_0)
+        text: root.action_0
         pos_hint: {"top": 1, "x": 0}
         size_hint: 1, 0.25
         font_size: 15
         color: "white"
     Label:
-        text: str(root.action_1)
+        text: root.action_1
         pos_hint: {"center_y": 0.5, "right": 1}
         size_hint: 0.25, 1
         font_size: 15
         color: "white"
     Label:
-        text: str(root.action_2)
+        text: root.action_2
         pos_hint: {"y": 0, "x": 0}
         size_hint: 1, 0.25
         font_size: 15
         color: "white"
     Label:
-        text: str(root.action_3)
+        text: root.action_3
         pos_hint: {"center_y": 0.5, "x": 0}
         size_hint: 0.25, 1
         font_size: 15
