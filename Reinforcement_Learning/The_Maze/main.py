@@ -49,7 +49,8 @@ class Game(Widget):
         self.keyboard = None
 
     def keyboard_down(self, keyboard, keycode, text, modifiers):
-        self.maze.update_agent(keycode)
+        if not self.maze.automate:
+            self.maze.update_agent(keycode[1])
 
 
 class Maze(RelativeLayout):
@@ -62,6 +63,8 @@ class Maze(RelativeLayout):
     enemies_idxs = []
     tile_reward_array = None
     q_grid = None
+    automate = True
+    agent_actions = ["up", "right", "down", "left"]
 
     def __init__(self, **kwargs):
         super(Maze, self).__init__(**kwargs)
@@ -143,15 +146,19 @@ class Maze(RelativeLayout):
         self.init_agent()
         self.init_q_grid()
 
+        ## automating game if preset
+        if self.automate:
+            Clock.schedule_interval(self.auto_update_agent, 1/30)
+
     def reset_game(self):
         self.agent.reset()
 
     ## functiont to move agent
-    def update_agent(self, keycode):
-        if not self.is_at_edge(self.agent, keycode[1]):
-            self.agent.update(
-                keycode[1], (self.tile_width, self.tile_height), self.tile_reward_array
-            )
+    def update_agent(self, action):
+        # if not self.is_at_edge(self.agent, action):
+        self.agent.update(
+            action, (self.tile_width, self.tile_height), self.tile_reward_array
+        )
 
         ## resetting player position when goal reached
         if (
@@ -160,10 +167,14 @@ class Maze(RelativeLayout):
         ):
             self.reset_game()
 
+    def auto_update_agent(self, dt):
+        action = self.agent.next_action
+        print(action)
+        self.update_agent(self.agent_actions[action])
+
     ## function to update the q_grid
     def update_q_grid(self, state):
         q_table = self.agent.brain.q_table
-        print(q_table)
         self.q_grid.tiles[state].action_0 = f"{(q_table[state, 0]):{.2}}"
         self.q_grid.tiles[state].action_1 = f"{(q_table[state, 1]):{.2}}"
         self.q_grid.tiles[state].action_2 = f"{(q_table[state, 2]):{.2}}"
@@ -247,6 +258,7 @@ class QGrid(FloatLayout):
 
 class Agent(Widget):
     last_state = 0
+    next_action = 0
 
     ## function to reset player to beginning of world
     def reset(self):
@@ -262,15 +274,26 @@ class Agent(Widget):
             self.pos_idxs[1] = self.pos_idxs[1] + 1
         if action == "down":
             self.pos_idxs[1] = self.pos_idxs[1] - 1
+
+        ## bringing player back when outside grid
+        if self.pos_idxs[0] < 0:
+            self.pos_idxs[0] = 0
+        if(self.pos_idxs[0] >= self.parent.num_tiles[0]):
+            self.pos_idxs[0] = self.parent.num_tiles[0]-1
+        if self.pos_idxs[1] < 0:
+            self.pos_idxs[1] = 0
+        if(self.pos_idxs[1] >= self.parent.num_tiles[1]):
+            self.pos_idxs[1] = self.parent.num_tiles[1]-1
+
+        ## update the players position
         self.pos = (self.pos_idxs[0] * dist[0], self.pos_idxs[1] * dist[1])
 
     def update(self, action, dist, reward_array):
         self.move(action, dist)
         reward = reward_array[self.pos_idxs[0], self.pos_idxs[1]]
-        print(self.pos_idxs)
         next_state = self.pos_to_state(self.pos_idxs)
         action = self.action_to_ind(action)
-        self.brain.update(self.last_state, next_state, action, reward)
+        self.next_action = self.brain.update(self.last_state, next_state, action, reward)
         ## updating the qgrid
         self.parent.update_q_grid(self.last_state)
         self.last_state = next_state
