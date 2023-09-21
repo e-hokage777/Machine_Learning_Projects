@@ -28,8 +28,8 @@ class Game(Widget):
     ## creating game variables
     MAZE_WIDTH = NumericProperty(700)
     MAZE_HEIGHT = NumericProperty(500)
-    NUM_TILES_H = NumericProperty(10)
-    NUM_TILES_V = NumericProperty(10)
+    NUM_TILES_H = NumericProperty(5)
+    NUM_TILES_V = NumericProperty(5)
     NUM_TILES = ReferenceListProperty(NUM_TILES_H, NUM_TILES_V)
     NUM_ENEMIES = 5
     maze = ObjectProperty(None)
@@ -51,6 +51,10 @@ class Game(Widget):
     def keyboard_down(self, keyboard, keycode, text, modifiers):
         if not self.maze.automate:
             self.maze.update_agent(keycode[1])
+
+    ## function to toggle the opacity of qgrid
+    def toggle_qgrid_display(self):
+        self.maze.q_grid.opacity = 1 - self.maze.q_grid.opacity
 
 
 class Maze(RelativeLayout):

@@ -28,42 +28,50 @@ Game:
         
         Agent:
             id: agent
+    
+    Button:
+        text: "Toggle QGrid"
+        on_press: root.toggle_qgrid_display()
         
 
 <QTile>:
     size_hint: None, None
     canvas.before:
         Color:
-            rgb: 0,0,0
+            rgb: 1,1,1
         Line:
-            rectangle: self.pos[0], self.pos[1], self.width, self.height
-        # Rectangle:
-        #     size: self.size
-        #     pos: self.pos
+            width: 1
+            points: 0, 0, self.width, self.height
+        Line:
+            width: 1
+            points: 0, self.height, self.width, 0
 
     Label:
         text: root.action_0
         pos_hint: {"top": 1, "x": 0}
         size_hint: 1, 0.25
-        font_size: 10
+        font_size: 12
         color: "white"
+        # canvas.before:
+        #     Triangle:
+        #         points: self.parent.width*0.5, self.parent.height*0.5, 0, -self.parent.height, self.parent.width, self.parent.height
     Label:
         text: root.action_1
         pos_hint: {"center_y": 0.5, "right": 1}
         size_hint: 0.25, 1
-        font_size: 10
+        font_size: 12
         color: "white"
     Label:
         text: root.action_2
         pos_hint: {"y": 0, "x": 0}
         size_hint: 1, 0.25
-        font_size: 10
+        font_size: 12
         color: "white"
     Label:
         text: root.action_3
         pos_hint: {"center_y": 0.5, "x": 0}
         size_hint: 0.25, 1
-        font_size: 10
+        font_size: 12
         color: "white"
 
 
@@ -73,7 +81,7 @@ Game:
     # opacity: 0.5
     canvas.before:
         Color:
-            rgba: 0, 1, 1, 0.1
+            rgba: 0, 0, 0, 0.5
         Rectangle:
             size: self.size
             pos: self.pos
