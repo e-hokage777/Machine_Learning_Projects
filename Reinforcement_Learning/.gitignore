@@ -1,3 +1,4 @@
 .vscode
 *.zip
 tests
+__pycache__
