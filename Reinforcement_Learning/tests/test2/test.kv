@@ -1,5 +1,24 @@
-MainWidget:
+WindowManager:
+    FirstScreen:
+        Button:
+            text: "Another"
+    SecondScreen:
 
-# <TestWidget>
-#     Label:
-#         text: root.value
+<FirstScreen>:
+    name: "first"
+    Button:
+        text: "First"
+        on_press: 
+            app.root.current = "second"
+            root.manager.transition.direction = "right"
+    # Button:
+    #     on_press: print(root.parent)
+<SecondScreen>:
+    name: "second"
+    Button:
+        text: "Second"
+        on_press: 
+            # app.root.current = "first"
+            root.manager.current = "first"
+            root.manager.transition.direction = "left"
+            # print(root.manager)

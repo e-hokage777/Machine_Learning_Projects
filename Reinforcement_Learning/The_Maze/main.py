@@ -3,6 +3,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.screenmanager import ScreenManager, Screen
 
 from kivy.properties import (
     NumericProperty,
@@ -17,14 +18,21 @@ from kivy.graphics.vertex_instructions import Rectangle, Line
 from kivy.vector import Vector
 from kivy.core.window import Window
 from kivy.clock import Clock
+from kivy.lang.builder import Builder
 
 import random
 import numpy as np
 
 from ai import Brain
 
+## builing the menu kivy file
+Builder.load_file("menu/menu.kv")
 
-class Game(Widget):
+## creating the screen manager
+class WindowManager(ScreenManager):
+    pass
+
+class Game(Screen):
     ## creating game variables
     MAZE_WIDTH = NumericProperty(700)
     MAZE_HEIGHT = NumericProperty(500)
@@ -60,7 +68,7 @@ class Game(Widget):
 
     def toggle_game_mode(self):
         self.game_start = not self.game_start
-        self.game_mode_btn_text = "STOP" if self.game_start else "RESUME"
+        self.game_mode_btn_text = "PAUSE" if self.game_start else "RESUME"
 
 
 class Maze(RelativeLayout):

@@ -1,15 +1,12 @@
-Game:
+#: import MenuWidget menu.menu.MenuWidget
 
-<Agent>:
-    size_hint: None, None
-    canvas:
-        Rectangle:
-            pos: self.pos
-            size: self.size
-            source: "assets/agent.png"
+WindowManager:
+    MenuWidget:
+    Game:
 
-
+## The GAME tree##
 <Game>:
+    name: "game"
     maze: maze
     Maze:
         id: maze
@@ -24,16 +21,30 @@ Game:
             id: agent
 
     BoxLayout:
-        width: 200
+        size_hint: None, None
+        width: 300
         height: 50
         opacity: 0.5
+        Button:
+            text: "<="
+            on_press:
+                root.manager.transition.direction = "right"
+                app.root.current = "menu"
         Button:
             text: "Toggle QGrid"
             on_press: root.toggle_qgrid_display()
         Button:
             text: root.game_mode_btn_text
             on_press: root.toggle_game_mode()
-            # pos: 100, 0
+
+
+<Agent>:
+    size_hint: None, None
+    canvas:
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: "assets/agent.png"
         
 
 <QTile>:

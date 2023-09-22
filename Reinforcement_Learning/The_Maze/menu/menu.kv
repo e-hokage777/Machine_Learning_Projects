@@ -1,0 +1,12 @@
+<MenuWidget>:
+    name: "menu"
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            text: "T H E  M A Z E"
+            font_size: 20
+        Button:
+            text: "S T A R T"
+            on_press:
+                root.manager.transition.direction = "left"
+                app.root.current = "game"
