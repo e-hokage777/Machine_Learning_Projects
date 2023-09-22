@@ -34,6 +34,7 @@ class Game(Widget):
     NUM_ENEMIES = 5
     maze = ObjectProperty(None)
     game_start = False
+    game_mode_btn_text = StringProperty("START")
 
     def __init__(self, **kwargs):
         super(Game, self).__init__(**kwargs)
@@ -56,6 +57,10 @@ class Game(Widget):
     ## function to toggle the opacity of qgrid
     def toggle_qgrid_display(self):
         self.maze.q_grid.opacity = 1 - self.maze.q_grid.opacity
+
+    def toggle_game_mode(self):
+        self.game_start = not self.game_start
+        self.game_mode_btn_text = "STOP" if self.game_start else "RESUME"
 
 
 class Maze(RelativeLayout):

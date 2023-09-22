@@ -11,12 +11,6 @@ Game:
 
 <Game>:
     maze: maze
-    # canvas:
-    #     Color:
-    #         rgb: 0, 1, 1
-    #     Rectangle:
-    #         size: self.size
-    #         pos: self.pos
     Maze:
         id: maze
         agent: agent
@@ -28,10 +22,18 @@ Game:
         
         Agent:
             id: agent
-    
-    Button:
-        text: "Toggle QGrid"
-        on_press: root.toggle_qgrid_display()
+
+    BoxLayout:
+        width: 200
+        height: 50
+        opacity: 0.5
+        Button:
+            text: "Toggle QGrid"
+            on_press: root.toggle_qgrid_display()
+        Button:
+            text: root.game_mode_btn_text
+            on_press: root.toggle_game_mode()
+            # pos: 100, 0
         
 
 <QTile>:
