@@ -33,6 +33,7 @@ class Game(Widget):
     NUM_TILES = ReferenceListProperty(NUM_TILES_H, NUM_TILES_V)
     NUM_ENEMIES = 5
     maze = ObjectProperty(None)
+    game_start = False
 
     def __init__(self, **kwargs):
         super(Game, self).__init__(**kwargs)
@@ -159,10 +160,10 @@ class Maze(RelativeLayout):
 
     ## functiont to move agent
     def update_agent(self, action):
-        # if not self.is_at_edge(self.agent, action):
-        self.agent.update(
-            action, (self.tile_width, self.tile_height), self.tile_reward_array
-        )
+        if self.parent.game_start:
+            self.agent.update(
+                action, (self.tile_width, self.tile_height), self.tile_reward_array
+            )
 
         ## resetting player position when goal reached
         if (
