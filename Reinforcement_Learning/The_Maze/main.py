@@ -44,7 +44,7 @@ class Game(Screen):
     game_start = False
     game_mode_btn_text = StringProperty("START")
     auto_agent = True
-    interval_set = False
+    maze_initialized = False
 
     def __init__(self, **kwargs):
         super(Game, self).__init__(**kwargs)
@@ -72,10 +72,15 @@ class Game(Screen):
         self.game_start = not self.game_start
         self.game_mode_btn_text = "PAUSE" if self.game_start else "RESUME"
 
-        if self.auto_agent and not self.interval_set:
-            Clock.schedule_interval(self.maze.auto_update_agent, 1/5)
-            self.interval_set = True
-            print("here")
+        # if self.auto_agent and not self.interval_set:
+        #     Clock.schedule_interval(self.maze.auto_update_agent, 1/5)
+        #     self.interval_set = True
+        #     print("here")
+
+    def on_pre_enter(self):
+        if not self.maze_initialized:
+            self.maze.init_maze()
+            self.maze_initialized = True
 
 
 class Maze(RelativeLayout):
@@ -92,7 +97,7 @@ class Maze(RelativeLayout):
 
     def __init__(self, **kwargs):
         super(Maze, self).__init__(**kwargs)
-        Clock.schedule_once(self.init_maze, 0.1)
+        # Clock.schedule_once(self.init_maze, 0.1)
 
     def init_tiles(self):
         self.tile_width = self.width / self.num_tiles[0]
@@ -164,15 +169,15 @@ class Maze(RelativeLayout):
 
         self.add_widget(self.q_grid)
 
-    def init_maze(self, dt):
+    def init_maze(self):
         self.init_tiles()
         self.init_tile_reward_array()
         self.init_agent()
         self.init_q_grid()
 
         ## automating game if preset
-        # if self.parent.auto_agent:
-        #     Clock.schedule_interval(self.auto_update_agent, 1/30)
+        if self.parent.auto_agent:
+            Clock.schedule_interval(self.auto_update_agent, 1/30)
 
     def reset_game(self):
         self.agent.reset()
