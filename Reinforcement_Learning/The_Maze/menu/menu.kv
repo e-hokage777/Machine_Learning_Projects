@@ -17,14 +17,19 @@
                         CheckBox:
                             group: "game_mode"
                             size_hint: radio_width_hint, 1
+                            allow_no_selection: False
                         Label:
                             text: "Manual"
                             text_size: self.size
                             valign: "middle"
                     BoxLayout:
                         CheckBox:
+                            id: auto_radio_btn
                             group: "game_mode"
                             size_hint: radio_width_hint, 1
+                            allow_no_selection: False
+                            active: True
+                            on_active: root.change_game_mode(self.active)
                         Label:
                             text: "Auto"
                             text_size: self.size
@@ -43,6 +48,7 @@
                 Label:
                     text: "Game Speed"
                 Slider:
+                    disabled: not auto_radio_btn.active
         Button:
             text: "S T A R T"
             on_press:

@@ -43,6 +43,8 @@ class Game(Screen):
     maze = ObjectProperty(None)
     game_start = False
     game_mode_btn_text = StringProperty("START")
+    auto_agent = True
+    interval_set = False
 
     def __init__(self, **kwargs):
         super(Game, self).__init__(**kwargs)
@@ -59,7 +61,7 @@ class Game(Screen):
         self.keyboard = None
 
     def keyboard_down(self, keyboard, keycode, text, modifiers):
-        if not self.maze.automate:
+        if not self.auto_agent:
             self.maze.update_agent(keycode[1])
 
     ## function to toggle the opacity of qgrid
@@ -69,6 +71,11 @@ class Game(Screen):
     def toggle_game_mode(self):
         self.game_start = not self.game_start
         self.game_mode_btn_text = "PAUSE" if self.game_start else "RESUME"
+
+        if self.auto_agent and not self.interval_set:
+            Clock.schedule_interval(self.maze.auto_update_agent, 1/5)
+            self.interval_set = True
+            print("here")
 
 
 class Maze(RelativeLayout):
@@ -81,7 +88,6 @@ class Maze(RelativeLayout):
     enemies_idxs = []
     tile_reward_array = None
     q_grid = None
-    automate = True
     agent_actions = ["up", "right", "down", "left"]
 
     def __init__(self, **kwargs):
@@ -165,8 +171,8 @@ class Maze(RelativeLayout):
         self.init_q_grid()
 
         ## automating game if preset
-        if self.automate:
-            Clock.schedule_interval(self.auto_update_agent, 1/30)
+        # if self.parent.auto_agent:
+        #     Clock.schedule_interval(self.auto_update_agent, 1/30)
 
     def reset_game(self):
         self.agent.reset()
@@ -187,16 +193,15 @@ class Maze(RelativeLayout):
 
     def auto_update_agent(self, dt):
         action = self.agent.next_action
-        print(action)
         self.update_agent(self.agent_actions[action])
 
     ## function to update the q_grid
     def update_q_grid(self, state):
         q_table = self.agent.brain.q_table
-        self.q_grid.tiles[state].action_0 = f"{(q_table[state, 0]):{.2}}"
-        self.q_grid.tiles[state].action_1 = f"{(q_table[state, 1]):{.2}}"
-        self.q_grid.tiles[state].action_2 = f"{(q_table[state, 2]):{.2}}"
-        self.q_grid.tiles[state].action_3 = f"{(q_table[state, 3]):{.2}}"
+        self.q_grid.tiles[state].action_0 = f"{(q_table[state, 0]):.{3}}"
+        self.q_grid.tiles[state].action_1 = f"{(q_table[state, 1]):.{3}}"
+        self.q_grid.tiles[state].action_2 = f"{(q_table[state, 2]):.{3}}"
+        self.q_grid.tiles[state].action_3 = f"{(q_table[state, 3]):.{3}}"
 
     ## function to convert from state in index
 

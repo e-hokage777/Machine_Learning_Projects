@@ -15,10 +15,10 @@ class Brain:
         return next_action[0]
     
     def update(self, last_state, next_state, action, reward):
-        print("Last State:", last_state)
-        print("Next State:", next_state)
-        print("Action:", action)
-        print("Reward:", reward)
+        # print("Last State:", last_state)
+        # print("Next State:", next_state)
+        # print("Action:", action)
+        # print("Reward:", reward)
         ## select next action to play
         q_old = self.q_table[last_state, action]
         q_opt = reward + self.gamma * max(self.q_table[next_state,:])
