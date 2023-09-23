@@ -1,3 +1,5 @@
+#: set radio_width_hint 0.2
+
 <MenuWidget>:
     name: "menu"
     BoxLayout:
@@ -5,6 +7,42 @@
         Label:
             text: "T H E  M A Z E"
             font_size: 20
+        BoxLayout:
+            orientation: "vertical"
+            BoxLayout:
+                Label:
+                    text: "mode"
+                BoxLayout:
+                    BoxLayout:
+                        CheckBox:
+                            group: "game_mode"
+                            size_hint: radio_width_hint, 1
+                        Label:
+                            text: "Manual"
+                            text_size: self.size
+                            valign: "middle"
+                    BoxLayout:
+                        CheckBox:
+                            group: "game_mode"
+                            size_hint: radio_width_hint, 1
+                        Label:
+                            text: "Auto"
+                            text_size: self.size
+                            valign: "middle"
+            BoxLayout:
+                Label:
+                    text: "Maze Size"
+                Label:
+                    text: "width and height"
+            BoxLayout:
+                Label:
+                    text: "Number of Enemies"
+                Label:
+                    text: "Value"
+            BoxLayout:
+                Label:
+                    text: "Game Speed"
+                Slider:
         Button:
             text: "S T A R T"
             on_press:
