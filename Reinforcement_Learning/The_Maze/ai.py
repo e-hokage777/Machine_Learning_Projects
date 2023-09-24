@@ -11,7 +11,7 @@ class Brain:
     ## function to select next action
     def select_action(self, state):
         next_action = random.choices([0,1,2,3], softmax(self.q_table[state, :]))
-        print(next_action[0])
+        # print(next_action[0])
         return next_action[0]
     
     def update(self, last_state, next_state, action, reward):

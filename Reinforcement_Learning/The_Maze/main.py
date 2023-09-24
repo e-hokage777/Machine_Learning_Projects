@@ -22,6 +22,7 @@ from kivy.lang.builder import Builder
 
 import random
 import numpy as np
+from itertools import permutations
 
 from ai import Brain
 
@@ -39,12 +40,13 @@ class Game(Screen):
     NUM_TILES_H = NumericProperty(5)
     NUM_TILES_V = NumericProperty(5)
     NUM_TILES = ReferenceListProperty(NUM_TILES_H, NUM_TILES_V)
-    NUM_ENEMIES = 5
+    NUM_ENEMIES = NumericProperty(5)
     maze = ObjectProperty(None)
     game_start = False
     game_mode_btn_text = StringProperty("START")
     auto_agent = True
     maze_initialized = False
+    game_speed = 30
 
     def __init__(self, **kwargs):
         super(Game, self).__init__(**kwargs)
@@ -104,14 +106,20 @@ class Maze(RelativeLayout):
         self.tile_height = self.height / self.num_tiles[1]
         self.goal_idx = (self.num_tiles[0] - 1, self.num_tiles[1] - 1)
 
-        ## setting up pit locations
-        enemies_xs = random.sample(
-            [r for r in range(self.num_tiles[0])], self.num_enemies
-        )
-        enemies_ys = random.sample(
-            [r for r in range(self.num_tiles[1])], self.num_enemies
-        )
-        self.enemies_idxs = list(zip(enemies_xs, enemies_ys))
+        ## setting up enemy locations
+        all_pos = []
+        for i in range(self.num_tiles[0]):
+            for j in range(self.num_tiles[1]):
+                all_pos.append((i,j))
+        
+        random.shuffle(all_pos)
+        count = 0
+
+        while len(self.enemies_idxs) < self.num_enemies:
+            if not (all_pos[count] == self.goal_idx) :
+                self.enemies_idxs.append(all_pos[count])
+            count+=1
+
 
         with self.canvas.before:
             tile_img = "assets/tile.png"
@@ -177,7 +185,7 @@ class Maze(RelativeLayout):
 
         ## automating game if preset
         if self.parent.auto_agent:
-            Clock.schedule_interval(self.auto_update_agent, 1/30)
+            Clock.schedule_interval(self.auto_update_agent, 1/(self.parent.game_speed))
 
     def reset_game(self):
         self.agent.reset()

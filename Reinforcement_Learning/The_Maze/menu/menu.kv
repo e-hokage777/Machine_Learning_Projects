@@ -4,14 +4,20 @@
     name: "menu"
     BoxLayout:
         orientation: "vertical"
+        padding: 20, 20
         Label:
             text: "T H E  M A Z E"
             font_size: 20
+            size_hint: 1, 0.5
         BoxLayout:
             orientation: "vertical"
+            spacing: 20
             BoxLayout:
                 Label:
-                    text: "mode"
+                    text: "Mode"
+                    text_size: self.width*0.5, self.height
+                    valign: "middle"
+                    halign: "left"
                 BoxLayout:
                     BoxLayout:
                         CheckBox:
@@ -36,21 +42,66 @@
                             valign: "middle"
             BoxLayout:
                 Label:
-                    text: "Maze Size"
-                Label:
-                    text: "width and height"
+                    text: "Maze Dimension"
+                    text_size: self.width*0.5, self.height
+                    valign: "middle"
+                    halign: "left"
+                BoxLayout:
+                    BoxLayout:
+                        Label:
+                            text: "Rows"
+                        TextInput:
+                            input_filter: "int"
+                            text: "5"
+                            multiline: False
+                            size_hint: 1, None
+                            height: 40
+                            pos_hint: {"center_y": 0.5}
+                            on_text: root.change_maze_rows(self.text)
+                    BoxLayout:
+                        Label:
+                            text: "Columns"
+                        TextInput:
+                            input_filter: "int"
+                            text: "5"
+                            multiline: False
+                            size_hint: 1, None
+                            height: 40
+                            pos_hint: {"center_y": 0.5}
+                            on_text: root.change_maze_cols(self.text)
             BoxLayout:
                 Label:
                     text: "Number of Enemies"
-                Label:
-                    text: "Value"
+                    text_size: self.width*0.5, self.height
+                    valign: "middle"
+                    halign: "left"
+                TextInput:
+                    input_filter: "int"
+                    text: "5"
+                    multiline: False
+                    size_hint: 1, None
+                    height: 40
+                    pos_hint: {"center_y": 0.5}
+                    on_text: root.change_num_enemies(self.text)
             BoxLayout:
                 Label:
                     text: "Game Speed"
+                    text_size: self.width*0.5, self.height
+                    valign: "middle"
+                    halign: "left"
                 Slider:
                     disabled: not auto_radio_btn.active
-        Button:
-            text: "S T A R T"
-            on_press:
-                root.manager.transition.direction = "left"
-                app.root.current = "game"
+                    min: 1
+                    max: 60
+                    value: 30
+                    on_value: root.change_game_speed(self.value)
+        BoxLayout:
+            size_hint: 1, 0.5
+            Button:
+                size_hint: None, 0.5
+                width: 200
+                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                text: "S T A R T"
+                on_press:
+                    root.manager.transition.direction = "left"
+                    app.root.current = "game"
