@@ -22,14 +22,14 @@ WindowManager:
 
     BoxLayout:
         size_hint: None, None
-        width: 400
+        width: 300
         height: 50
         opacity: 0.5
-        Button:
-            text: "<="
-            on_press:
-                root.manager.transition.direction = "right"
-                app.root.current = "menu"
+        # Button:
+        #     text: "<="
+        #     on_press:
+        #         root.manager.transition.direction = "right"
+        #         app.root.current = "menu"
         Button:
             text: "Toggle QGrid"
             on_press: root.toggle_qgrid_display()
@@ -61,31 +61,42 @@ WindowManager:
     #     Line:
     #         width: 1
     #         points: 0, self.height, self.width, 0
-
     Label:
         text: root.action_0
         pos_hint: {"top": 1, "x": 0}
-        size_hint: 1, 0.25
+        size_hint: 1, 0.3
         font_size: 12
         color: "white"
+        # text_size: self.size
+        # valign: "top"
+        # halign: "center"
     Label:
         text: root.action_1
         pos_hint: {"center_y": 0.5, "right": 1}
-        size_hint: 0.25, 1
+        size_hint: 0.3, 1
         font_size: 12
         color: "white"
+        # text_size: self.size
+        # valign: "middle"
+        # halign: "right"
     Label:
         text: root.action_2
         pos_hint: {"y": 0, "x": 0}
-        size_hint: 1, 0.25
+        size_hint: 1, 0.3
         font_size: 12
         color: "white"
+        # text_size: self.size
+        # valign: "bottom"
+        # halign: "center"
     Label:
         text: root.action_3
         pos_hint: {"center_y": 0.5, "x": 0}
-        size_hint: 0.25, 1
+        size_hint: 0.3, 1
         font_size: 12
         color: "white"
+        # text_size: self.size
+        # valign: "middle"
+        # halign: "left"
 
 
 <QGrid>

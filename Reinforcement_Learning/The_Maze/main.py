@@ -22,8 +22,8 @@ from kivy.lang.builder import Builder
 
 import random
 import numpy as np
-from itertools import permutations
 
+## importing the ai module
 from ai import Brain
 
 ## builing the menu kivy file
@@ -77,11 +77,6 @@ class Game(Screen):
     def toggle_game_mode(self):
         self.game_start = not self.game_start
         self.game_mode_btn_text = "PAUSE" if self.game_start else "RESUME"
-
-        # if self.auto_agent and not self.interval_set:
-        #     Clock.schedule_interval(self.maze.auto_update_agent, 1/5)
-        #     self.interval_set = True
-        #     print("here")
 
     def on_pre_enter(self):
         if not self.maze_initialized:
@@ -230,10 +225,11 @@ class Maze(RelativeLayout):
     ## function to update the q_grid
     def update_q_grid(self, state):
         q_table = self.agent.brain.q_table
-        self.q_grid.tiles[state].action_0 = f"{(q_table[state, 0]):.{3}}"
-        self.q_grid.tiles[state].action_1 = f"{(q_table[state, 1]):.{3}}"
-        self.q_grid.tiles[state].action_2 = f"{(q_table[state, 2]):.{3}}"
-        self.q_grid.tiles[state].action_3 = f"{(q_table[state, 3]):.{3}}"
+        self.q_grid.tiles[state].action_0 = f"{round(q_table[state, 0],2)}"
+        self.q_grid.tiles[state].action_1 = f"{round(q_table[state, 1],2)}"
+        self.q_grid.tiles[state].action_2 = f"{round(q_table[state, 2],2)}"
+        self.q_grid.tiles[state].action_3 = f"{round(q_table[state, 3],2)}"
+
 
     ## function to update the policy grid
     def update_p_grid(self, state):
@@ -316,7 +312,7 @@ class PTile(FloatLayout):
         self.size_hint = None, None
         self.tsize = self.width*0.1
         with self.canvas.before:
-            Color(rgba=(1,1,1,0.5))
+            Color(rgba=(1,1,1,0.8))
             self.triangle = Triangle(points=(
                 self.center[0],self.center[1] + self.tsize,
                 self.center[0]+self.tsize,self.center[1] - self.tsize,

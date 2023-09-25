@@ -7,7 +7,7 @@
         padding: 20, 20
         Label:
             text: "T H E  M A Z E"
-            font_size: 20
+            font_size: 50
             size_hint: 1, 0.5
         BoxLayout:
             orientation: "vertical"
@@ -97,11 +97,11 @@
                     on_value: root.change_game_speed(self.value)
         BoxLayout:
             size_hint: 1, 0.5
-            Button:
-                size_hint: None, 0.5
-                width: 200
-                pos_hint: {"center_x": 0.5, "center_y": 0.5}
-                text: "S T A R T"
-                on_press:
-                    root.manager.transition.direction = "left"
-                    app.root.current = "game"
+            FloatLayout:
+                Button:
+                    size_hint: 0.5, 0.7
+                    pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                    text: "S T A R T"
+                    on_press:
+                        root.manager.transition.direction = "left"
+                        app.root.current = "game"

@@ -3,7 +3,6 @@ from kivy.uix.screenmanager import Screen
 
 class MenuWidget(Screen):
     def change_game_mode(self, auto):
-        print(auto)
         self.manager.get_screen("game").auto_agent=auto
 
     ## function to change number of rows of maze
@@ -33,7 +32,6 @@ class MenuWidget(Screen):
         ## getting maze dimension
         maze_dim = self.manager.get_screen("game").NUM_TILES_V * self.manager.get_screen("game").NUM_TILES_H
         if(0<number<=(maze_dim)-1):
-            print("Number of enemies:", number)
             self.manager.get_screen("game").NUM_ENEMIES = number
 
     
