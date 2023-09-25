@@ -22,7 +22,7 @@ WindowManager:
 
     BoxLayout:
         size_hint: None, None
-        width: 300
+        width: 400
         height: 50
         opacity: 0.5
         Button:
@@ -33,6 +33,9 @@ WindowManager:
         Button:
             text: "Toggle QGrid"
             on_press: root.toggle_qgrid_display()
+        Button:
+            text: "Toggle Policy"
+            on_press: root.toggle_policy_grid_display()
         Button:
             text: root.game_mode_btn_text
             on_press: root.toggle_game_mode()

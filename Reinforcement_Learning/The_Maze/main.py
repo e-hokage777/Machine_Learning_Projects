@@ -70,6 +70,10 @@ class Game(Screen):
     def toggle_qgrid_display(self):
         self.maze.q_grid.opacity = 1 - self.maze.q_grid.opacity
 
+    ## function to toggle the opacity of policy grid
+    def toggle_policy_grid_display(self):
+        self.maze.p_grid.opacity = 1 - self.maze.p_grid.opacity
+
     def toggle_game_mode(self):
         self.game_start = not self.game_start
         self.game_mode_btn_text = "PAUSE" if self.game_start else "RESUME"
@@ -166,6 +170,7 @@ class Maze(RelativeLayout):
         self.agent.pos_idxs = [0, 0]
         self.agent.brain = Brain(self.num_tiles[0] * self.num_tiles[1], 4)
 
+    ## function to setup qgrid
     def init_q_grid(self):
         self.q_grid = QGrid(
             num_tiles_x = self.num_tiles[0],
@@ -177,11 +182,25 @@ class Maze(RelativeLayout):
 
         self.add_widget(self.q_grid)
 
+    ## function to setup policy grid
+    def init_p_grid(self):
+        self.p_grid = PGrid(
+            num_tiles_x = self.num_tiles[0],
+            num_tiles_y = self.num_tiles[1],
+            size=self.size,
+            tile_width=self.tile_width,
+            tile_height=self.tile_height
+        )
+
+        self.add_widget(self.p_grid)
+
+
     def init_maze(self):
         self.init_tiles()
         self.init_tile_reward_array()
         self.init_agent()
         self.init_q_grid()
+        self.init_p_grid()
 
         ## automating game if preset
         if self.parent.auto_agent:
@@ -216,7 +235,10 @@ class Maze(RelativeLayout):
         self.q_grid.tiles[state].action_2 = f"{(q_table[state, 2]):.{3}}"
         self.q_grid.tiles[state].action_3 = f"{(q_table[state, 3]):.{3}}"
 
-    ## function to convert from state in index
+    ## function to update the policy grid
+    def update_p_grid(self, state):
+        q_table = self.agent.brain.q_table
+        self.p_grid.tiles[state].update(np.argmax(q_table[state, :]))
 
     ## function to check whether object is at edge of maze
     def is_at_edge(self, obj, direction):
@@ -231,16 +253,6 @@ class Maze(RelativeLayout):
 
         return False
 
-        ## some old logic that might be useful later
-        # if(obj.pos[0] >= (self.width - self.tile_width)) and direction == "right":
-        #     return True
-        # elif(obj.pos[0] <= 0) and direction == "left":
-        #     return True
-        # if(obj.pos[1] >= (self.height - self.tile_height)) and direction == "up":
-        #     return True
-        # elif(obj.pos[1] <= 0) and direction == "down":
-        #     return True
-
 class QTile(FloatLayout):
     action_0 = NumericProperty(0)
     action_1 = NumericProperty(1)
@@ -250,23 +262,12 @@ class QTile(FloatLayout):
     def __init__(self, **kwargs):
         super(QTile, self).__init__(**kwargs)
 
-## Q-Grid Class
-# class QGrid(RelativeLayout):
-#     tiles = []
-#     def __init__(self, **kwargs):
-#         super(QGrid, self).__init__(**kwargs)
-#         for i in range(self.rows * self.cols):
-#             tile = QTile()
-#             self.tiles.append(tile)
-#             self.add_widget(tile)
-
 
 class QTile(FloatLayout):
     action_0 = StringProperty('0')
     action_1 = StringProperty('0')
     action_2 = StringProperty('0')
     action_3 = StringProperty('0')
-    # actions = ListProperty([action_0, action_1, action_2, action_3])
 
     def __init__(self, **kwargs):
         super(QTile, self).__init__(**kwargs)
@@ -306,14 +307,51 @@ class PGrid(FloatLayout):
                 self.tiles.append(tile)
                 self.add_widget(tile)
 
-class PTile(RelativeLayout):
+class PTile(FloatLayout):
     direction = NumericProperty(0)
     triangle = None
+    tsize = 20
     def __init__(self, **kwargs):
         super(PTile, self).__init__(**kwargs)
+        self.size_hint = None, None
+        self.tsize = self.width*0.1
         with self.canvas.before:
-            self.triangle = Triangle(points=())
+            Color(rgba=(1,1,1,0.5))
+            self.triangle = Triangle(points=(
+                self.center[0],self.center[1] + self.tsize,
+                self.center[0]+self.tsize,self.center[1] - self.tsize,
+                self.center[0]-self.tsize,self.center[1] - self.tsize
+            ))
 
+    def update(self, direction):
+        points = self.triangle.points
+        match direction:
+            case 0:
+                points=(self.center[0],self.center[1] + self.tsize,
+                        self.center[0]+self.tsize,self.center[1] - self.tsize,
+                        self.center[0]-self.tsize,self.center[1] - self.tsize
+                        )
+            case 1:
+                points=(
+                    self.center[0]+self.tsize,self.center[1],
+                    self.center[0]-self.tsize,self.center[1] + self.tsize,
+                    self.center[0]-self.tsize,self.center[1] - self.tsize,
+                    )
+            case 2:
+                points=(
+                    self.center[0],self.center[1] - self.tsize,
+                    self.center[0]+self.tsize,self.center[1] + self.tsize,
+                    self.center[0]-self.tsize,self.center[1] + self.tsize
+                    )
+            case 3:
+                points=(
+                    self.center[0]-self.tsize,self.center[1],
+                    self.center[0]+self.tsize,self.center[1] + self.tsize,
+                    self.center[0]+self.tsize,self.center[1] - self.tsize,
+                    )
+            
+        self.triangle.points = points
+                
 
 
 class Agent(Widget):
@@ -356,6 +394,8 @@ class Agent(Widget):
         self.next_action = self.brain.update(self.last_state, next_state, action, reward)
         ## updating the qgrid
         self.parent.update_q_grid(self.last_state)
+        ## updating the policy grid
+        self.parent.update_p_grid(self.last_state)
         self.last_state = next_state
 
 
