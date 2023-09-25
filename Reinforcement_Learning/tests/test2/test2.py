@@ -20,6 +20,7 @@ class MainWidget(Widget):
 
     def update(self, dt):
         num = random.randint(0, 3)
+        print(self.center)
         center = (self.width / 2, self.height / 2)
         size = 20
         # num = 0
