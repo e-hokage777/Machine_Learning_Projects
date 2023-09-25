@@ -14,7 +14,7 @@ from kivy.properties import (
 )
 
 from kivy.graphics.context_instructions import Color
-from kivy.graphics.vertex_instructions import Rectangle, Line
+from kivy.graphics.vertex_instructions import Rectangle, Line, Triangle
 from kivy.vector import Vector
 from kivy.core.window import Window
 from kivy.clock import Clock
@@ -250,14 +250,16 @@ class QTile(FloatLayout):
     def __init__(self, **kwargs):
         super(QTile, self).__init__(**kwargs)
 
-class QGrid(GridLayout):
-    tiles = []
-    def __init__(self, **kwargs):
-        super(QGrid, self).__init__(**kwargs)
-        for i in range(self.rows * self.cols):
-            tile = QTile()
-            self.tiles.append(tile)
-            self.add_widget(tile)
+## Q-Grid Class
+# class QGrid(RelativeLayout):
+#     tiles = []
+#     def __init__(self, **kwargs):
+#         super(QGrid, self).__init__(**kwargs)
+#         for i in range(self.rows * self.cols):
+#             tile = QTile()
+#             self.tiles.append(tile)
+#             self.add_widget(tile)
+
 
 class QTile(FloatLayout):
     action_0 = StringProperty('0')
@@ -278,10 +280,6 @@ class QGrid(FloatLayout):
     tiles = []
     def __init__(self, **kwargs):
         super(QGrid, self).__init__(**kwargs)
-        # for i in range(self.rows * self.cols):
-        #     tile = QTile()
-        #     self.tiles.append(tile)
-        #     self.add_widget(tile)
         for i in range(self.num_tiles_y):
             for j in range(self.num_tiles_x):
                 ypos = i * self.tile_height
@@ -289,6 +287,32 @@ class QGrid(FloatLayout):
                 tile = QTile(width =self.tile_width, height=self.tile_height, pos=(xpos, ypos))
                 self.tiles.append(tile)
                 self.add_widget(tile)
+
+
+## Policy Grid Class
+class PGrid(FloatLayout):
+    tile_width = NumericProperty(0)
+    tile_height = NumericProperty(0)
+    num_tiles_x = NumericProperty(0)
+    num_tiles_y = NumericProperty(0)
+    tiles = []
+    def __init__(self, **kwargs):
+        super(PGrid, self).__init__(**kwargs)
+        for i in range(self.num_tiles_y):
+            for j in range(self.num_tiles_x):
+                ypos = i * self.tile_height
+                xpos = j * self.tile_width 
+                tile = PTile(width =self.tile_width, height=self.tile_height, pos=(xpos, ypos))
+                self.tiles.append(tile)
+                self.add_widget(tile)
+
+class PTile(RelativeLayout):
+    direction = NumericProperty(0)
+    triangle = None
+    def __init__(self, **kwargs):
+        super(PTile, self).__init__(**kwargs)
+        with self.canvas.before:
+            self.triangle = Triangle(points=())
 
 
 
