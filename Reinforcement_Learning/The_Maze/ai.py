@@ -3,7 +3,7 @@ import random
 from scipy.special import softmax
 
 class Brain:
-    def __init__(self, num_states, num_actions, gamma = 0.9, learning_rate = 0.5):
+    def __init__(self, num_states, num_actions, gamma = 0.9, learning_rate = 0.3):
         self.q_table = np.zeros((num_states, num_actions))
         self.gamma = gamma
         self.learning_rate = learning_rate
