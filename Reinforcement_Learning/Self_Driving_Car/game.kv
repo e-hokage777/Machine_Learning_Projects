@@ -1,0 +1,30 @@
+GameWidget:
+
+<Car>:
+    canvas.before:
+        Color:
+            rgb: 1,1,1
+        PushMatrix
+        Rotate:
+            origin: self.center
+            angle: self.angle
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        PopMatrix
+    
+
+
+<Sensor>:
+    maka: "working"
+    canvas:
+        Color:
+            rgba: self.color
+        PushMatrix
+        Rotate:
+            origin: self.rot_origin
+            angle: self.rot_angle
+        Ellipse:
+            size: self.size
+            pos: self.pos
+        PopMatrix
