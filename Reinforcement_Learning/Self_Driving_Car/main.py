@@ -33,9 +33,9 @@ class Car(Widget):
         super(Car, self).__init__(**kwargs)
         ## setting car sizez
         self.size = (50, 10)
-        self.sensor1 = Sensor(color=[1,0,0,1], offset_angle=60)
+        self.sensor1 = Sensor(color=[1,0,0,1], offset_angle=30)
         self.sensor2 = Sensor(color=[0,1,0,1], offset_angle=0)
-        self.sensor3 = Sensor(color=[0,0,1,1], offset_angle=-60)
+        self.sensor3 = Sensor(color=[0,0,1,1], offset_angle=-30)
 
         ## adding the sensors to the car
         self.add_widget(self.sensor1)
@@ -69,12 +69,8 @@ class Car(Widget):
 ## the sensor class
 class Sensor(Widget):
     color = ColorProperty([0,0,0,0])
-    offset = NumericProperty(20)
+    offset = NumericProperty(50)
     offset_angle = NumericProperty(0)
-    rot_angle = NumericProperty(0)
-    rot_origin_x = NumericProperty(0)
-    rot_origin_y = NumericProperty(0)
-    rot_origin = ReferenceListProperty(rot_origin_x, rot_origin_y)
     def __init__(self, **kwargs):
         super(Sensor, self).__init__(**kwargs)
         print(self.color)
@@ -86,11 +82,8 @@ class Sensor(Widget):
 
     ## function to update sensor state
     def update(self, dt):
-        self.rot_angle = self.parent.angle
-        self.rot_origin = self.parent.center
-        self.rot_origin = self.parent.center
-        new_pos = [self.parent.pos[0] + self.parent.width, self.parent.pos[1] + self.parent.height*0.5 - self.size[0]*0.5]
-        self.pos = Vector(self.offset, 0).rotate(self.offset_angle) + new_pos
+        new_pos = [self.parent.pos[0] + self.parent.width*0.5, self.parent.pos[1] + self.parent.height*0.5 - self.size[1]*0.5]
+        self.pos = Vector(self.offset, 0).rotate(self.parent.angle + self.offset_angle) + new_pos
 
 
 ## the game app

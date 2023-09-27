@@ -20,11 +20,7 @@ GameWidget:
     canvas:
         Color:
             rgba: self.color
-        PushMatrix
-        Rotate:
-            origin: self.rot_origin
-            angle: self.rot_angle
         Ellipse:
             size: self.size
             pos: self.pos
-        PopMatrix
+
