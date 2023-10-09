@@ -9,11 +9,17 @@ from kivy.clock import Clock
 
 import numpy as np
 
+from ai import Dqn
+
 
 ## the game class
 class GameWidget(Widget):
     car = None
+    car_margin = NumericProperty(10)
     paint_widget = None
+    goal_x = NumericProperty(0)
+    goal_y = NumericProperty(0)
+    goal_margin = NumericProperty(20)
 
     ## sand
     sand = None
@@ -32,7 +38,8 @@ class GameWidget(Widget):
     def on_parent(self, instance, parent):
         if parent:
             self.sand = np.zeros((parent.width, parent.height))
-            print(self.sand.shape)
+            self.goal_x = self.goal_margin
+            self.goal_y = parent.height - self.goal_margin
 
     ## function to make sand
     def make_sand(self, point):
@@ -47,6 +54,12 @@ class GameWidget(Widget):
         self.car.update(dt)
 
 
+        if self.car.distance < 100:
+            self.goal_x = self.width-self.goal_x
+            self.goal_y = self.height-self.goal_y
+            print("goaaaalllllllll!!!!!!!!!!!!!!!")
+
+
 ## the car class
 class Car(Widget):
     ## car properties
@@ -55,6 +68,9 @@ class Car(Widget):
     angle = NumericProperty(0)
     car_width = NumericProperty(40)
     car_height = NumericProperty(10)
+    reward = 0
+    distance = 0
+    last_distance = 0
 
     ## car components
     sensor1 = None
@@ -74,17 +90,30 @@ class Car(Widget):
         self.add_widget(self.sensor2)
         self.add_widget(self.sensor3)
 
+        ## instanting brain
+        self.brain = Dqn(5, 3, 0.9)
+
     ## function to update state of car
     def update(self, dt):
-        velocit = self.velocity
+        velocity = self.velocity
+        ## getting distance from goal
+        self.distance = np.sqrt((self.x - self.parent.goal_x)**2 + (self.y - self.parent.goal_y)**2)
         if(self.parent.sand[int(self.pos[0]), int(self.pos[1])] == 1):
             velocity = self.sand_velocity
+            self.reward = -1
+        elif(self.distance < self.last_distance):
+            self.reward = 0.1
         else:
             velocity = self.velocity
+            self.reward = -0.2
+        
+        
+        ## getting car's orientation from goal
+        goal_dist_x = self.parent.goal_x - self.pos[0]
+        goal_dist_y = self.parent.goal_y - self.pos[1]
+        orientation = Vector(*velocity).angle((goal_dist_x, goal_dist_y))/180
 
-        rotation = random.choice([0, 20, -20])
-        self.angle = (self.angle + rotation) % 360
-        self.pos = velocity.rotate(self.angle) * dt + self.pos
+        ## bounding car within bounds
         self.bound_within()
 
         ## updating the sensors
@@ -92,23 +121,38 @@ class Car(Widget):
         self.sensor2.update(dt)
         self.sensor3.update(dt)
 
+        ## updating brain and getting next action to play
+        action = self.brain.update([self.sensor1.signal, self.sensor2.signal, self.sensor3.signal, orientation, - orientation], self.reward)
+
+        rotation = [0, 20, -20][action]
+        self.angle = (self.angle + rotation) % 360
+        self.pos = velocity.rotate(self.angle) * dt + self.pos
+
+        self.last_distance = self.distance
+
     ## function to keep car within bounds
     def bound_within(self):
-        if self.pos[0] < 0:
-            self.pos[0] = 0
-        elif self.pos[0] > self.parent.width - self.width:
-            self.pos[0] = self.parent.width - self.width
+        if self.pos[0] < self.parent.car_margin:
+            self.pos[0] = self.parent.car_margin
+            self.reward = -1
+        elif self.pos[0] > self.parent.width - self.width - self.parent.car_margin:
+            self.pos[0] = self.parent.width - self.width - self.parent.car_margin
+            self.reward = -1
 
-        if self.pos[1] < 0:
-            self.pos[1] = 0
-        elif self.pos[1] > self.parent.height - self.width:
+        if self.pos[1] < self.parent.car_margin:
+            self.pos[1] = self.parent.car_margin
+            self.reward = -1
+        elif self.pos[1] > self.parent.height - self.width - self.parent.car_margin:
             self.pos[1] = (
-                self.parent.height - self.width
+                self.parent.height - self.width - self.parent.car_margin
             )  ## implement here better later on
+            self.reward = -1
 
 
 ## the sensor class
 class Sensor(Widget):
+    radius = NumericProperty(10)
+    signal = NumericProperty(0)
     color = ColorProperty([0, 0, 0, 0])
     offset = NumericProperty(50)
     offset_angle = NumericProperty(0)
@@ -131,6 +175,11 @@ class Sensor(Widget):
             Vector(self.offset, 0).rotate(self.parent.angle + self.offset_angle)
             + new_pos
         )
+
+        sand_map = self.parent.parent.sand
+        ind_x = int(self.pos[0])
+        ind_y = int(self.pos[1])
+        self.signal = int(np.sum(sand_map[ind_x-self.radius:ind_x+self.radius, ind_y-self.radius:ind_y+self.radius])/400)
 
 
 ## paint widget

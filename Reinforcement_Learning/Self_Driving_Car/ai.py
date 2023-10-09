@@ -4,8 +4,10 @@ import torch.nn.functional as F
 
 import random
 
+import os
 
-class Network(nn.model):
+
+class Network(nn.Module):
     def __init__(self, input_size, nb_actions):
         super(Network, self).__init__()
         self.nb_actions = nb_actions
@@ -31,29 +33,92 @@ class ReplayMemory:
     def push(self, event):
         self.memory.append(event)
 
-        if event.length > self.capacity:
+        if len(self.memory) > self.capacity:
             del self.memory[0]
 
     ## function to select `batch_size` samples
     def sample(self, batch_size):
         samples = zip(*random.sample(self.memory, batch_size))
-        return map(lambda x: torch.tensor(x, requires_grad=True).reshape(-1,1), samples) ## check here well
-    
+        return map(
+            lambda x: torch.tensor(torch.cat(x, 0), requires_grad=True), samples
+        )  ## check here well
 
 
 class Dqn:
     def __init__(self, input_size, nb_actions, gamma):
         self.gamma = gamma
         self.reward_window = []
-        self.network = Network(input_size, nb_actions)
+        self.model = Network(input_size, nb_actions)
         self.memory = ReplayMemory(100000)
-        self.optimizer = torch.optim.Adam(self.model.parameters, lr=0.001)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
         self.last_state = torch.randn(input_size).unsqueeze(0)
         self.last_action = 0
         self.last_reward = 0
 
     ## function to select an action
     def select_action(self, state):
-        probs = F.softmax(self.model(state)*7)
+        probs = F.softmax(self.model(state) * 7)
         action = probs.multinomial(1)
         return action.item()
+
+    ## function to learn
+    def learn(self, batch_state, batch_next_state, batch_reward, batch_action):
+        outputs = (
+            self.model(batch_state).gather(1, batch_action.unsqueeze(1).to(int)).squeeze(1)
+        )
+        next_outputs = self.model(batch_next_state).detach().max(1)[0]
+        targets = batch_reward + self.gamma * next_outputs
+        td_loss = F.smooth_l1_loss(outputs, targets)
+        self.optimizer.zero_grad()
+        td_loss.backward()
+        self.optimizer.step()
+
+    ## function that handles update of brain and function return
+    def update(self, new_signal, reward):
+        ## learning
+        if len(self.memory.memory) > 100:
+            self.learn(*self.memory.sample(100))
+
+        print(reward)
+
+        ## adding new item to memory
+        new_state = torch.tensor(new_signal).unsqueeze(0)
+        self.memory.push([self.last_state, new_state, torch.tensor([self.last_reward*1.0]), torch.tensor([self.last_action*1.0])]) # confused about here
+
+        ## selection a new action to play
+        action = self.select_action(torch.tensor(new_state))
+
+        ## updating the lasts
+        self.last_state = new_state
+        self.last_reward = reward
+        self.last_action = action
+
+        ## adding to reward window
+        if len(self.reward_window) > 1000:
+            del self.reward_window[0]
+
+        self.reward_window.append(reward)
+
+        ## returning action to play
+        return action
+
+    ## function to score using sliding window
+    def score(self):
+        return sum(self.reward_window)/(len(self.reward_window)+1)
+    
+
+    def save(self):
+        torch.save(
+            {"state_dict": self.model.state_dict, "optimizer_state": self.optimizer.state_dict},
+            "last_brain.pth"
+        )
+
+    def load(self):
+        filename = "last_brain.pth"
+        if os.path.isfile(filename):
+            checkpoint = torch.load(filename)
+            self.model.load_state_dict(checkpoint["state_dict"])
+            self.optimizer.load_state_dict(checkpoint["optimizer_state"])
+            print("done")
+        else:
+            print("No saved data found")
