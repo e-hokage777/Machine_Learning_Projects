@@ -33,7 +33,7 @@ class GameWidget(Widget):
         ## adding the car to the game
         self.car = Car()
         self.add_widget(self.car)
-        Clock.schedule_interval(self.update, 1 / 60)
+        Clock.schedule_interval(self.update, 1/60)
 
     def on_parent(self, instance, parent):
         if parent:
@@ -53,18 +53,18 @@ class GameWidget(Widget):
     def update(self, dt):
         self.car.update(dt)
 
-
         if self.car.distance < 100:
-            self.goal_x = self.width-self.goal_x
-            self.goal_y = self.height-self.goal_y
+            self.goal_x = self.width - self.goal_x
+            self.goal_y = self.height - self.goal_y
             print("goaaaalllllllll!!!!!!!!!!!!!!!")
 
 
 ## the car class
 class Car(Widget):
     ## car properties
-    velocity = Vector(300, 0)
-    sand_velocity = Vector(70,0)
+    velocity = Vector(0, 0)
+    normal_velocity = Vector(6, 0)
+    sand_velocity = Vector(1, 0)
     angle = NumericProperty(0)
     car_width = NumericProperty(40)
     car_height = NumericProperty(10)
@@ -95,38 +95,49 @@ class Car(Widget):
 
     ## function to update state of car
     def update(self, dt):
-        velocity = self.velocity
+        velocity = self.normal_velocity
         ## getting distance from goal
-        self.distance = np.sqrt((self.x - self.parent.goal_x)**2 + (self.y - self.parent.goal_y)**2)
-        if(self.parent.sand[int(self.pos[0]), int(self.pos[1])] == 1):
+        self.distance = np.sqrt(
+            (self.x - self.parent.goal_x) ** 2 + (self.y - self.parent.goal_y) ** 2
+        )
+        if self.parent.sand[int(self.pos[0]), int(self.pos[1])] == 1:
             velocity = self.sand_velocity
             self.reward = -1
-        elif(self.distance < self.last_distance):
-            self.reward = 0.1
         else:
-            velocity = self.velocity
+            velocity = self.normal_velocity
             self.reward = -0.2
-        
-        
+            if self.distance < self.last_distance:
+                self.reward = 0.1
+
         ## getting car's orientation from goal
-        goal_dist_x = self.parent.goal_x - self.pos[0]
-        goal_dist_y = self.parent.goal_y - self.pos[1]
-        orientation = Vector(*velocity).angle((goal_dist_x, goal_dist_y))/180
+        goal_dist_x = self.parent.goal_x - self.x
+        goal_dist_y = self.parent.goal_y - self.y
+        orientation = Vector(*self.velocity).angle((goal_dist_x, goal_dist_y)) / 180
 
         ## bounding car within bounds
         self.bound_within()
+
+        ## updating brain and getting next action to play
+        action = self.brain.update(
+            [
+                self.sensor1.signal,
+                self.sensor2.signal,
+                self.sensor3.signal,
+                orientation,
+                -orientation,
+            ],
+            self.reward,
+        )
+        
+        rotation = [0, 20, -20][action]
+        self.angle = (self.angle + rotation) % 360
+        self.velocity = velocity.rotate(self.angle)
+        self.pos = self.velocity + self.pos
 
         ## updating the sensors
         self.sensor1.update(dt)
         self.sensor2.update(dt)
         self.sensor3.update(dt)
-
-        ## updating brain and getting next action to play
-        action = self.brain.update([self.sensor1.signal, self.sensor2.signal, self.sensor3.signal, orientation, - orientation], self.reward)
-
-        rotation = [0, 20, -20][action]
-        self.angle = (self.angle + rotation) % 360
-        self.pos = velocity.rotate(self.angle) * dt + self.pos
 
         self.last_distance = self.distance
 
@@ -179,7 +190,24 @@ class Sensor(Widget):
         sand_map = self.parent.parent.sand
         ind_x = int(self.pos[0])
         ind_y = int(self.pos[1])
-        self.signal = int(np.sum(sand_map[ind_x-self.radius:ind_x+self.radius, ind_y-self.radius:ind_y+self.radius])/400)
+        self.signal = int(
+            np.sum(
+                sand_map[
+                    ind_x - self.radius : ind_x + self.radius,
+                    ind_y - self.radius : ind_y + self.radius,
+                ]
+            )
+            / 400
+        )
+
+        world = self.parent.parent
+        if (
+            self.x > world.width - world.car_margin
+            or self.x < world.car_margin
+            or self.y > world.height - world.car_margin
+            or self.y < world.car_margin
+        ):
+            self.signal = 1.0
 
 
 ## paint widget
