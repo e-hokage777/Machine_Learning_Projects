@@ -4,10 +4,16 @@ GameWidget:
         width: 300
         Button:
             text: "Clear"
+            on_press:
+                root.clear_sand()
         Button:
             text: "Save"
+            on_press:
+                root.save_car_brain()
         Button:
             text: "Load"
+            on_press:
+                root.load_car_brain()
 
 <Car>:
     canvas.before:

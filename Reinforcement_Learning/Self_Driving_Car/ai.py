@@ -58,7 +58,7 @@ class Dqn:
 
     ## function to select an action
     def select_action(self, state):
-        probs = F.softmax(self.model(state) * 7)
+        probs = F.softmax(self.model(state) * 10)
         action = probs.multinomial(1)
         return action.item()
 
@@ -83,6 +83,7 @@ class Dqn:
         ## adding new item to memory
         new_state = torch.tensor(new_signal).unsqueeze(0)
         self.memory.push([self.last_state, new_state, torch.tensor([reward]), torch.tensor([self.last_action])]) # confused about here
+        # print([self.last_state, new_state, torch.tensor([reward]), torch.tensor([self.last_action])])
         ## selection a new action to play
         action = self.select_action(new_state)
 
@@ -107,7 +108,7 @@ class Dqn:
 
     def save(self):
         torch.save(
-            {"state_dict": self.model.state_dict, "optimizer_state": self.optimizer.state_dict},
+            {"state_dict": self.model.state_dict(), "optimizer_state": self.optimizer.state_dict()},
             "last_brain.pth"
         )
 

@@ -8,6 +8,7 @@ from kivy.vector import Vector
 from kivy.clock import Clock
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from ai import Dqn
 
@@ -20,6 +21,7 @@ class GameWidget(Widget):
     goal_x = NumericProperty(0)
     goal_y = NumericProperty(0)
     goal_margin = NumericProperty(20)
+    scores = []
 
     ## sand
     sand = None
@@ -46,7 +48,7 @@ class GameWidget(Widget):
         ## !!!  THINK ABOUT THE EDGES LATER !!! ##
         self.sand[
             point[0] - self.sand_spread : point[0] + self.sand_spread,
-            point[1] - self.sand_spread : point[1] + self.sand_spread,
+            point[1] - self.sand_spread : point[1] + self.sand_spread
         ] = 1
 
     ## function to update the state of the game
@@ -57,6 +59,29 @@ class GameWidget(Widget):
             self.goal_x = self.width - self.goal_x
             self.goal_y = self.height - self.goal_y
             print("goaaaalllllllll!!!!!!!!!!!!!!!")
+
+
+    ## Function to save car's brain
+    def save_car_brain(self):
+        print("Saving Brain")
+        self.car.brain.save()
+        plt.plot(self.scores)
+        plt.show()
+
+    ## Function to load car's brain
+    def load_car_brain(self):
+        print("Loading Braind")
+        self.car.brain.load()
+    
+    ## Function to clear sand
+    def clear_sand(self):
+        print("clearning widget")
+        self.paint_widget.canvas.before.clear()
+        self.sand[:] = 0
+
+
+    def plot_reward(self):
+        xs = [t for t in range(len(self.car.brain.scores))]
 
 
 ## the car class
@@ -100,7 +125,8 @@ class Car(Widget):
         self.distance = np.sqrt(
             (self.x - self.parent.goal_x) ** 2 + (self.y - self.parent.goal_y) ** 2
         )
-        if self.parent.sand[int(self.pos[0]), int(self.pos[1])] == 1:
+        if self.parent.sand[int(self.center_x), int(self.center_y)] > 0:
+            print("in sand...")
             velocity = self.sand_velocity
             self.reward = -1
         else:
@@ -128,7 +154,9 @@ class Car(Widget):
             ],
             self.reward,
         )
-        
+
+        self.parent.scores.append(self.brain.score())
+
         rotation = [0, 20, -20][action]
         self.angle = (self.angle + rotation) % 360
         self.velocity = velocity.rotate(self.angle)
@@ -188,14 +216,15 @@ class Sensor(Widget):
         )
 
         sand_map = self.parent.parent.sand
-        ind_x = int(self.pos[0])
-        ind_y = int(self.pos[1])
-        self.signal = int(
-            np.sum(
-                sand_map[
-                    ind_x - self.radius : ind_x + self.radius,
-                    ind_y - self.radius : ind_y + self.radius,
-                ]
+        ind_x = int(self.x)
+        ind_y = int(self.y)
+        self.signal = (
+            int(np.sum(
+                    sand_map[
+                        ind_x - self.radius : ind_x + self.radius,
+                        ind_y - self.radius : ind_y + self.radius,
+                    ]
+                )
             )
             / 400
         )
