@@ -58,7 +58,7 @@ class GameWidget(Widget):
         if self.car.distance < 100:
             self.goal_x = self.width - self.goal_x
             self.goal_y = self.height - self.goal_y
-            print("goaaaalllllllll!!!!!!!!!!!!!!!")
+            # print("goaaaalllllllll!!!!!!!!!!!!!!!")
 
 
     ## Function to save car's brain
@@ -91,7 +91,7 @@ class Car(Widget):
     normal_velocity = Vector(6, 0)
     sand_velocity = Vector(1, 0)
     angle = NumericProperty(0)
-    car_width = NumericProperty(40)
+    car_width = NumericProperty(20)
     car_height = NumericProperty(10)
     reward = 0
     distance = 0
@@ -126,7 +126,7 @@ class Car(Widget):
             (self.x - self.parent.goal_x) ** 2 + (self.y - self.parent.goal_y) ** 2
         )
         if self.parent.sand[int(self.center_x), int(self.center_y)] > 0:
-            print("in sand...")
+            # print("in sand...")
             velocity = self.sand_velocity
             self.reward = -1
         else:
@@ -190,10 +190,10 @@ class Car(Widget):
 
 ## the sensor class
 class Sensor(Widget):
-    radius = NumericProperty(10)
+    radius = NumericProperty(7)
     signal = NumericProperty(0)
     color = ColorProperty([0, 0, 0, 0])
-    offset = NumericProperty(50)
+    offset = NumericProperty(30)
     offset_angle = NumericProperty(0)
 
     def __init__(self, **kwargs):

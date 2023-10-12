@@ -58,7 +58,7 @@ class Dqn:
 
     ## function to select an action
     def select_action(self, state):
-        probs = F.softmax(self.model(state) * 10)
+        probs = F.softmax(self.model(state) * 100)
         action = probs.multinomial(1)
         return action.item()
 
