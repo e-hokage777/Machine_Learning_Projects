@@ -22,6 +22,7 @@ class GameWidget(Widget):
     goal_y = NumericProperty(0)
     goal_margin = NumericProperty(20)
     scores = []
+    line_goal_to_car = None
 
     ## sand
     sand = None
@@ -35,6 +36,9 @@ class GameWidget(Widget):
         ## adding the car to the game
         self.car = Car()
         self.add_widget(self.car)
+        ## drawing line car
+        with self.canvas:
+            self.line_goal_to_car = Line()
         Clock.schedule_interval(self.update, 1/60)
 
     def on_parent(self, instance, parent):
@@ -55,10 +59,13 @@ class GameWidget(Widget):
     def update(self, dt):
         self.car.update(dt)
 
-        if self.car.distance < 100:
+        if self.car.distance < 50:
             self.goal_x = self.width - self.goal_x
             self.goal_y = self.height - self.goal_y
             # print("goaaaalllllllll!!!!!!!!!!!!!!!")
+
+        ## drawing line to car
+        self.line_goal_to_car.points = [self.car.x, self.car.y, self.goal_x, self.goal_y]
 
 
     ## Function to save car's brain
@@ -96,6 +103,8 @@ class Car(Widget):
     reward = 0
     distance = 0
     last_distance = 0
+    last_goal_ang = 0
+    goal_ang = 0
 
     ## car components
     sensor1 = None
@@ -128,17 +137,25 @@ class Car(Widget):
         if self.parent.sand[int(self.center_x), int(self.center_y)] > 0:
             # print("in sand...")
             velocity = self.sand_velocity
-            self.reward = -1
+            self.reward = -2
         else:
             velocity = self.normal_velocity
-            self.reward = -0.2
+            self.reward = -0.1
             if self.distance < self.last_distance:
                 self.reward = 0.1
+            # elif self.goal_ang <= self.last_goal_ang:
+            #     self.reward = 0.0
+
+        # if self.distance < 50:
+        #     self.reward = 1
+        #     print("goal!!!!!!!!!!!!!!!")
 
         ## getting car's orientation from goal
         goal_dist_x = self.parent.goal_x - self.x
         goal_dist_y = self.parent.goal_y - self.y
         orientation = Vector(*self.velocity).angle((goal_dist_x, goal_dist_y)) / 180
+
+        self.goal_ang = Vector(-goal_dist_x, goal_dist_y).angle(((self.parent.goal_margin+5)-self.parent.goal_x,0))
 
         ## bounding car within bounds
         self.bound_within()
@@ -168,6 +185,7 @@ class Car(Widget):
         self.sensor3.update(dt)
 
         self.last_distance = self.distance
+        self.last_goal_ang = self.goal_ang
 
     ## function to keep car within bounds
     def bound_within(self):
